@@ -302,7 +302,7 @@
 
 <script>
 // ── Constants ────────────────────────────────────────────────────────────
-const WS_URL  = `ws://${location.host}/ws`;
+const WS_URL = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
 const MIC_RATE = 16000;   // must match backend SEND_SAMPLE_RATE
 const OUT_RATE = 24000;   // must match backend RECEIVE_SAMPLE_RATE
 const CHUNK_MS = 100;     // send mic audio every N ms
