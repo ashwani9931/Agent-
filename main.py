@@ -268,7 +268,7 @@ footer{
 <footer>Gemini 3.1 Flash Live &middot; &copy; 2026</footer>
 
 <script>
-const WS_URL   = `ws://${location.host}/ws`;
+const WS_URL = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
 const MIC_RATE = 16000;
 const OUT_RATE = 24000;
 
