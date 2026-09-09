@@ -6,12 +6,12 @@
 <title>English Communication Tutor</title>
 <style>
   :root {
-    --bg: #0f0f13;
-    --surface: #1a1a24;
-    --surface2: #22222e;
-    --border: #2e2e3e;
-    --accent: #7c6bf0;
-    --accent2: #a78bfa;
+    --bg: #0a0a14;
+    --surface: #13151f;
+    --surface2: #1f222e;
+    --border: #2b2533;
+    --accent: #1689b2;
+    --accent2: #8dd8f2;
     --green: #34d399;
     --red: #f87171;
     --text: #e2e2f0;
@@ -72,7 +72,7 @@
   main {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 300px;
     gap: 0;
     overflow: hidden;
   }
@@ -85,6 +85,9 @@
     padding: 24px 28px;
     gap: 16px;
     scroll-behavior: smooth;
+    grid-column: 1;
+    grid-row: 1;
+    border-right: 1px solid var(--border);
   }
   .bubble {
     max-width: 78%;
@@ -96,14 +99,14 @@
   }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
   .bubble.kate {
-    background: var(--surface2);
-    border: 1px solid var(--border);
+    background: #3b3b3b;
+    border: none;
     align-self: flex-start;
     border-bottom-left-radius: 4px;
   }
   .bubble.user {
-    background: linear-gradient(135deg, #2d2560, #1e1a45);
-    border: 1px solid #4a3fa0;
+    background: #0d5468;
+    border: none;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
   }
@@ -115,7 +118,7 @@
     text-transform: uppercase;
   }
   .bubble.kate .bubble-label { color: var(--accent2); }
-  .bubble.user .bubble-label { color: #818cf8; }
+  .bubble.user .bubble-label { color: #a8e8fb; }
 
   .empty-state {
     flex: 1;
@@ -133,11 +136,12 @@
   /* ── Sidebar ─────────────────────────────────────── */
   aside {
     background: var(--surface);
-    border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     padding: 24px 20px;
     gap: 20px;
+    grid-column: 2;
+    grid-row: 1;
   }
   aside h2 { font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
@@ -169,11 +173,11 @@
   }
   .orb.speaking {
     animation: orbPulse 1.2s ease-in-out infinite;
-    box-shadow: 0 0 0 8px rgba(124, 107, 240, 0.25), 0 0 0 18px rgba(124, 107, 240, 0.1);
+    box-shadow: 0 0 0 8px rgba(22, 137, 178, 0.25), 0 0 0 18px rgba(22, 137, 178, 0.1);
   }
   @keyframes orbPulse {
-    0%,100%{box-shadow:0 0 0 6px rgba(124,107,240,.25),0 0 0 16px rgba(124,107,240,.1)}
-    50%    {box-shadow:0 0 0 14px rgba(124,107,240,.3),0 0 0 28px rgba(124,107,240,.08)}
+    0%,100%{box-shadow:0 0 0 6px rgba(22,137,178,.25),0 0 0 16px rgba(22,137,178,.1)}
+    50%    {box-shadow:0 0 0 14px rgba(22,137,178,.3),0 0 0 28px rgba(22,137,178,.08)}
   }
 
   /* Controls */
@@ -191,7 +195,7 @@
   }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
   .btn-primary {
-    background: linear-gradient(135deg, var(--accent), #5b4cd4);
+    background: var(--accent);
     color: #fff;
   }
   .btn-primary:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
@@ -237,6 +241,24 @@
     color: var(--muted);
     border-top: 1px solid var(--border);
     background: var(--surface);
+  }
+
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    #transcript {
+      grid-column: 1;
+      grid-row: 1;
+      border-left: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+    }
+    aside {
+      grid-column: 1;
+      grid-row: 2;
+      max-height: 45vh;
+      padding: 16px;
+    }
+    .bubble { max-width: 85%; }
   }
 
   /* Scrollbar */

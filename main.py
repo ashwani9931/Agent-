@@ -64,7 +64,7 @@ HTML = """<!DOCTYPE html>
 <title>English Communication Tutor</title>
 <style>
 :root{
-  --bg:#000;--surface:#0a0a0a;--surface2:#141414;
+  --bg:#0a0a14;--surface:#13151f;--surface2:#1f222e;
   --border:#2a2a2a;--text:#f0f0f0;--muted:#666;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -103,7 +103,7 @@ main{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
 #chat{
   display:flex;flex-direction:column;overflow-y:auto;
   padding:20px 24px;gap:14px;scroll-behavior:smooth;
-  border-right:1px solid var(--border);
+  grid-column:1;grid-row:1;border-right:1px solid var(--border);
 }
 #chat::-webkit-scrollbar{width:5px}
 #chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -114,8 +114,8 @@ main{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
   word-wrap: break-word;
 }
 @keyframes pop{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.bubble.kate{background:var(--surface2);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px}
-.bubble.user{background:#111;border:1px solid #2a2a2a;align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.kate{background:#3b3b3b;border:none;align-self:flex-start;border-bottom-left-radius:3px}
+.bubble.user{background:#0d5468;border:none;align-self:flex-end;border-bottom-right-radius:3px}
 .bname{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;color:var(--muted)}
 
 .empty{
@@ -127,6 +127,7 @@ main{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
 aside{
   background:var(--surface);
   display:flex;flex-direction:column;padding:20px 16px;gap:18px;overflow-y:auto;
+  grid-column:2;grid-row:1;
 }
 aside h2{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 
@@ -206,11 +207,15 @@ footer{
     grid-template-rows: 1fr auto;
   }
   #chat {
+    grid-column: 1;
+    grid-row: 1;
     border-right: none;
     border-bottom: 1px solid var(--border);
     padding: 16px;
   }
   aside {
+    grid-column: 1;
+    grid-row: 2;
     padding: 14px;
     max-height: 45vh;
   }
