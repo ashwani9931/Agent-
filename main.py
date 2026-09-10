@@ -292,7 +292,7 @@ const canvas    = document.getElementById('viz');
 const ctx2d     = canvas.getContext('2d');
 
 let ws=null, audioCtx=null, micStream=null, processor=null, analyser=null;
-let kateSpeaking=false, rafId=null, activeAudioChunks=0;
+let kateSpeaking=false, rafId=null, activeAudioChunks=0, nextPlayTime=0, pendingKateTimeouts=[];
 
 function setStatus(s){
   dot.className='dot '+s;
@@ -301,6 +301,22 @@ function setStatus(s){
 
 function removeEmpty(){ if(emptyEl&&emptyEl.parentNode) emptyEl.remove(); }
 function escHtml(t){ const d=document.createElement('div');d.textContent=t;return d.innerHTML; }
+function scheduleKateBubble(text){
+  if(!audioCtx){ addBubble('kate', text); return; }
+  const delayMs = Math.max(0, (nextPlayTime - audioCtx.currentTime) * 1000);
+  if(delayMs < 30){
+    addBubble('kate', text);
+  } else {
+    const id = setTimeout(()=>addBubble('kate', text), delayMs);
+    pendingKateTimeouts.push(id);
+  }
+}
+
+function clearPendingKateBubbles(){
+  pendingKateTimeouts.forEach(id=>clearTimeout(id));
+  pendingKateTimeouts = [];
+}
+
 function addBubble(who,text){
   removeEmpty();
   const last=chatEl.lastElementChild;
@@ -349,7 +365,10 @@ function playPCM(buf){
   const ab=audioCtx.createBuffer(1,f32.length,OUT_RATE);
   ab.copyToChannel(f32,0);
   const src=audioCtx.createBufferSource();
-  src.buffer=ab; src.connect(audioCtx.destination); src.start();
+  src.buffer=ab; src.connect(audioCtx.destination);
+  const startTime = Math.max(audioCtx.currentTime, nextPlayTime);
+  src.start(startTime);
+  nextPlayTime = startTime + ab.duration;
   activeAudioChunks++;
   kateSpeaking=true; orb.classList.add('speaking'); kateState.textContent='Speaking…';
   src.onended=()=>{
@@ -403,6 +422,7 @@ async function connect(){
     setStatus('live');
     btnStop.disabled=false; btnClear.disabled=false;
     kateState.textContent='Connecting…';
+    nextPlayTime = audioCtx.currentTime;
     try{ await startMic(); }
     catch(e){ console.error('Mic error:',e); addBubble('kate','Mic error: '+e.name+' — '+e.message); }
     drawViz();
@@ -412,16 +432,17 @@ async function connect(){
     if(e.data instanceof ArrayBuffer){ playPCM(e.data); return; }
     try{
       const m=JSON.parse(e.data);
-      if(m.type==='kate_transcript'&&m.text.trim()) addBubble('kate',m.text);
+      if(m.type==='kate_transcript'&&m.text.trim()) scheduleKateBubble(m.text);
       if(m.type==='user_transcript'&&m.text.trim()) addBubble('user',m.text);
       if(m.type==='error') addBubble('kate','Error: '+m.message);
-      if(m.type==='interrupted'){ activeAudioChunks=0; kateSpeaking=false; orb.classList.remove('speaking'); kateState.textContent='Listening'; }
+      if(m.type==='interrupted'){ activeAudioChunks=0; kateSpeaking=false; orb.classList.remove('speaking'); kateState.textContent='Listening'; nextPlayTime=audioCtx.currentTime; clearPendingKateBubbles(); }
     }catch{}
   };
 
   ws.onclose=()=>{
     setStatus('disconnected'); stopMic();
     cancelAnimationFrame(rafId); rafId=null;
+    clearPendingKateBubbles();
     orb.classList.remove('speaking'); kateState.textContent='Idle';
     btnStart.disabled=false; btnStop.disabled=true;
   };

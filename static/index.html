@@ -352,6 +352,8 @@ let outQueue      = [];   // PCM Int16 chunks queued for playback
 let playing       = false;
 let kateSpeaking  = false;
 let activeAudioChunks = 0;
+let nextPlayTime = 0;
+let pendingKateTimeouts = [];
 let rafId         = null;
 
 // ── Status helper ─────────────────────────────────────────────────────────
@@ -363,6 +365,22 @@ function setStatus(state) {
 // ── Transcript helpers ────────────────────────────────────────────────────
 function removeEmpty() {
   emptyState && emptyState.remove();
+}
+
+function scheduleKateBubble(text){
+  if(!audioCtx){ addBubble('kate', text); return; }
+  const delayMs = Math.max(0, (nextPlayTime - audioCtx.currentTime) * 1000);
+  if(delayMs < 30){
+    addBubble('kate', text);
+  } else {
+    const id = setTimeout(()=>addBubble('kate', text), delayMs);
+    pendingKateTimeouts.push(id);
+  }
+}
+
+function clearPendingKateBubbles(){
+  pendingKateTimeouts.forEach(id=>clearTimeout(id));
+  pendingKateTimeouts = [];
 }
 
 function addBubble(who, text) {
@@ -422,7 +440,9 @@ function schedulePCM(int16Data) {
   const src = audioCtx.createBufferSource();
   src.buffer = buf;
   src.connect(audioCtx.destination);
-  src.start();
+  const startTime = Math.max(audioCtx.currentTime, nextPlayTime);
+  src.start(startTime);
+  nextPlayTime = startTime + buf.duration;
   activeAudioChunks++;
   kateSpeaking = true;
   orb.classList.add('speaking');
@@ -499,6 +519,7 @@ async function connect() {
     setStatus('connected');
     btnStop.disabled  = false;
     btnClear.disabled = false;
+    nextPlayTime = audioCtx.currentTime;
     try { await startMic(); } catch(e) {
       addBubble('kate', '⚠️ Microphone access denied. Please allow mic and try again.');
     }
@@ -513,10 +534,10 @@ async function connect() {
       // JSON event
       try {
         const msg = JSON.parse(e.data);
-        if (msg.type === 'kate_transcript' && msg.text.trim()) addBubble('kate', msg.text);
+        if (msg.type === 'kate_transcript' && msg.text.trim()) scheduleKateBubble(msg.text);
         if (msg.type === 'user_transcript' && msg.text.trim()) addBubble('user', msg.text);
         if (msg.type === 'error') addBubble('kate', `⚠️ Error: ${msg.message}`);
-        if (msg.type === 'interrupted') { activeAudioChunks = 0; kateSpeaking = false; orb.classList.remove('speaking'); }
+        if (msg.type === 'interrupted') { activeAudioChunks = 0; kateSpeaking = false; orb.classList.remove('speaking'); nextPlayTime = audioCtx.currentTime; clearPendingKateBubbles(); }
       } catch {}
     }
   };
@@ -525,6 +546,7 @@ async function connect() {
     setStatus('disconnected');
     stopMic();
     cancelAnimationFrame(rafId);
+    clearPendingKateBubbles();
     orb.classList.remove('speaking');
     btnStart.disabled = false;
     btnStop.disabled  = true;
