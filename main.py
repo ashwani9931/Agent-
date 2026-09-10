@@ -64,8 +64,8 @@ HTML = """<!DOCTYPE html>
 <title>English Communication Tutor</title>
 <style>
 :root{
-  --bg:#0a0a14;--surface:#13151f;--surface2:#1f222e;
-  --border:#2a2a2a;--text:#f0f0f0;--muted:#666;
+  --bg:#0f0b17;--surface:#171221;--surface2:#1f222e;
+  --border:#2a2a2a;--text:#ffffff;--muted:#888;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -98,12 +98,12 @@ header p{font-size:.73rem;color:var(--muted);margin-top:2px;}
 .dot.error{background:#888}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-main{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
+main{flex:1;display:grid;grid-template-columns:300px 1fr;overflow:hidden}
 
 #chat{
   display:flex;flex-direction:column;overflow-y:auto;
   padding:20px 24px;gap:14px;scroll-behavior:smooth;
-  grid-column:1;grid-row:1;border-right:1px solid var(--border);
+  grid-column:2;grid-row:1;border-left:1px solid var(--border);
 }
 #chat::-webkit-scrollbar{width:5px}
 #chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -114,9 +114,10 @@ main{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
   word-wrap: break-word;
 }
 @keyframes pop{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.bubble.kate{background:#3b3b3b;border:none;align-self:flex-start;border-bottom-left-radius:3px}
-.bubble.user{background:#0d5468;border:none;align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.kate{background:#3a3b3d;border:none;align-self:flex-start;border-bottom-left-radius:3px}
+.bubble.user{background:#064861;border:none;align-self:flex-end;border-bottom-right-radius:3px}
 .bname{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;color:var(--muted)}
+.bubble.kate .bname { color:#76bce2; }
 
 .empty{
   flex:1;display:flex;flex-direction:column;align-items:center;
@@ -127,7 +128,7 @@ main{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
 aside{
   background:var(--surface);
   display:flex;flex-direction:column;padding:20px 16px;gap:18px;overflow-y:auto;
-  grid-column:2;grid-row:1;
+  grid-column:1;grid-row:1;
 }
 aside h2{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 
@@ -291,7 +292,7 @@ const canvas    = document.getElementById('viz');
 const ctx2d     = canvas.getContext('2d');
 
 let ws=null, audioCtx=null, micStream=null, processor=null, analyser=null;
-let kateSpeaking=false, rafId=null;
+let kateSpeaking=false, rafId=null, activeAudioChunks=0;
 
 function setStatus(s){
   dot.className='dot '+s;
@@ -349,8 +350,19 @@ function playPCM(buf){
   ab.copyToChannel(f32,0);
   const src=audioCtx.createBufferSource();
   src.buffer=ab; src.connect(audioCtx.destination); src.start();
+  activeAudioChunks++;
   kateSpeaking=true; orb.classList.add('speaking'); kateState.textContent='Speaking…';
-  src.onended=()=>{ kateSpeaking=false; orb.classList.remove('speaking'); kateState.textContent='Listening'; };
+  src.onended=()=>{
+    activeAudioChunks--;
+    if (activeAudioChunks <= 0) {
+      activeAudioChunks = 0;
+      setTimeout(() => {
+        if (activeAudioChunks <= 0) {
+          kateSpeaking=false; orb.classList.remove('speaking'); kateState.textContent='Listening';
+        }
+      }, 600);
+    }
+  };
 }
 
 async function startMic(){
@@ -403,7 +415,7 @@ async function connect(){
       if(m.type==='kate_transcript'&&m.text.trim()) addBubble('kate',m.text);
       if(m.type==='user_transcript'&&m.text.trim()) addBubble('user',m.text);
       if(m.type==='error') addBubble('kate','Error: '+m.message);
-      if(m.type==='interrupted'){ kateSpeaking=false; orb.classList.remove('speaking'); kateState.textContent='Listening'; }
+      if(m.type==='interrupted'){ activeAudioChunks=0; kateSpeaking=false; orb.classList.remove('speaking'); kateState.textContent='Listening'; }
     }catch{}
   };
 

@@ -6,8 +6,8 @@
 <title>English Communication Tutor</title>
 <style>
   :root {
-    --bg: #0a0a14;
-    --surface: #13151f;
+    --bg: #0f0b17;
+    --surface: #171221;
     --surface2: #1f222e;
     --border: #2b2533;
     --accent: #1689b2;
@@ -72,7 +72,7 @@
   main {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 300px 1fr;
     gap: 0;
     overflow: hidden;
   }
@@ -85,9 +85,9 @@
     padding: 24px 28px;
     gap: 16px;
     scroll-behavior: smooth;
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 1;
-    border-right: 1px solid var(--border);
+    border-left: 1px solid var(--border);
   }
   .bubble {
     max-width: 78%;
@@ -99,13 +99,13 @@
   }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
   .bubble.kate {
-    background: #3b3b3b;
+    background: #3a3b3d;
     border: none;
     align-self: flex-start;
     border-bottom-left-radius: 4px;
   }
   .bubble.user {
-    background: #0d5468;
+    background: #064861;
     border: none;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
@@ -117,7 +117,7 @@
     margin-bottom: 6px;
     text-transform: uppercase;
   }
-  .bubble.kate .bubble-label { color: var(--accent2); }
+  .bubble.kate .bubble-label { color: #76bce2; }
   .bubble.user .bubble-label { color: #a8e8fb; }
 
   .empty-state {
@@ -140,7 +140,7 @@
     flex-direction: column;
     padding: 24px 20px;
     gap: 20px;
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
   }
   aside h2 { font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -351,6 +351,7 @@ let analyser      = null;
 let outQueue      = [];   // PCM Int16 chunks queued for playback
 let playing       = false;
 let kateSpeaking  = false;
+let activeAudioChunks = 0;
 let rafId         = null;
 
 // ── Status helper ─────────────────────────────────────────────────────────
@@ -422,9 +423,21 @@ function schedulePCM(int16Data) {
   src.buffer = buf;
   src.connect(audioCtx.destination);
   src.start();
-  src.onended = () => { kateSpeaking = false; orb.classList.remove('speaking'); };
+  activeAudioChunks++;
   kateSpeaking = true;
   orb.classList.add('speaking');
+  src.onended = () => {
+    activeAudioChunks--;
+    if (activeAudioChunks <= 0) {
+      activeAudioChunks = 0;
+      setTimeout(() => {
+        if (activeAudioChunks <= 0) {
+          kateSpeaking = false;
+          orb.classList.remove('speaking');
+        }
+      }, 600);
+    }
+  };
 }
 
 // ── Mic capture ───────────────────────────────────────────────────────────
@@ -503,7 +516,7 @@ async function connect() {
         if (msg.type === 'kate_transcript' && msg.text.trim()) addBubble('kate', msg.text);
         if (msg.type === 'user_transcript' && msg.text.trim()) addBubble('user', msg.text);
         if (msg.type === 'error') addBubble('kate', `⚠️ Error: ${msg.message}`);
-        if (msg.type === 'interrupted') { kateSpeaking = false; orb.classList.remove('speaking'); }
+        if (msg.type === 'interrupted') { activeAudioChunks = 0; kateSpeaking = false; orb.classList.remove('speaking'); }
       } catch {}
     }
   };
