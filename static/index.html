@@ -20,7 +20,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
+    background: var(--bg) url('/static/bg.jpg') center/cover no-repeat fixed;
     color: var(--text);
     min-height: 100vh;
     display: flex;
@@ -35,6 +35,8 @@
     padding: 18px 28px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
+    background: rgba(23,18,33,0.75) !important;
+    backdrop-filter: blur(12px);
   }
   .logo {
     width: 42px; height: 42px;
@@ -76,6 +78,7 @@
     gap: 0;
     overflow: hidden;
   }
+  body.session-active main { display: grid; grid-template-columns: 1fr 300px; align-items: unset; justify-content: unset; }
 
   /* ── Transcript pane ─────────────────────────────── */
   #transcript {
@@ -517,6 +520,7 @@ async function connect() {
 
   ws.onopen = async () => {
     setStatus('connected');
+    document.body.classList.add('session-active');
     btnStop.disabled  = false;
     btnClear.disabled = false;
     nextPlayTime = audioCtx.currentTime;
@@ -547,6 +551,7 @@ async function connect() {
     stopMic();
     cancelAnimationFrame(rafId);
     clearPendingKateBubbles();
+    document.body.classList.remove('session-active');
     orb.classList.remove('speaking');
     btnStart.disabled = false;
     btnStop.disabled  = true;
