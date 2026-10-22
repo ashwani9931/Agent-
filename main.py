@@ -139,14 +139,15 @@ aside{
   box-shadow:0 4px 16px rgba(0,0,0,0.25);
 
   /* ALL animated properties use concrete pixel/% values — no 'auto' */
+  /* Option 1: snappier slide with spring-like overshoot */
   transition:
-    transform     1.1s cubic-bezier(0.25,0.46,0.45,0.94),
-    width         1.1s cubic-bezier(0.25,0.46,0.45,0.94),
-    max-height    1.1s ease,
-    border-radius 1.1s ease,
-    padding       1.1s ease,
-    gap           1.1s ease,
-    box-shadow    1.1s ease;
+    transform     0.65s cubic-bezier(0.34,1.56,0.64,1),
+    width         0.65s cubic-bezier(0.34,1.56,0.64,1),
+    max-height    0.65s ease,
+    border-radius 0.65s ease,
+    padding       0.65s ease,
+    gap           0.65s ease,
+    box-shadow    0.65s ease;
 }
 
 /* ── ACTIVE: transform back to 0, shrink to sidebar ─────────────────── */
@@ -251,9 +252,9 @@ body.session-active aside .waveform.speaking .bar{animation:none;}
   height:100%;
   min-height:0;
   transition:
-    max-width 1.1s cubic-bezier(0.25,0.46,0.45,0.94),
-    opacity   0.7s ease 0.65s,
-    padding   1.1s ease;
+    max-width 0.65s cubic-bezier(0.34,1.56,0.64,1),
+    opacity   0.4s ease 0.35s,
+    padding   0.65s ease;
 }
 body.session-active #chat{
   max-width:100%;       /* expand — concrete value, fully animatable */
